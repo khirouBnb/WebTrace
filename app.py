@@ -145,7 +145,7 @@ def analyze_log():
         report = report_generator.generate_report(case_info, results)
         
         # حفظ النتائج في الذاكرة وإرجاع معرف فريد
-        report_id = str(uuid.uuid4())
+        report_id = report['report_id']
         analysis_storage[report_id] = {
             'results': results,
             'report': report
@@ -201,13 +201,27 @@ def train_model_endpoint():
 @app.route('/results')
 def results():
     """صفحة عرض النتائج"""
-    report_id = request.args.get('id')
+    report_id = request.args.get('id') or request.args.get('report_id')
     
+    # 1. البحث في الذاكرة المؤقتة (للسرعة)
     if report_id in analysis_storage:
         data_dict = analysis_storage[report_id]
         return render_template('results.html', 
                              report=data_dict.get('report', {}),
                              results=data_dict.get('results', {}))
+    
+    # 2. البحث في الملفات المحفوظة (في حال إعادة تشغيل السيرفر)
+    if report_id:
+        file_path = os.path.join('reports', f"{report_id}.json")
+        if os.path.exists(file_path):
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    stored_report = json.load(f)
+                    return render_template('results.html', 
+                                         report=stored_report,
+                                         results=stored_report.get('summary', {}))
+            except Exception as e:
+                print(f"Error loading stored report: {e}")
     
     return redirect(url_for('index'))
 
