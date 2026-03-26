@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نتائج التحليل - WebTrace</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+        .navbar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 15px 30px; color: white; margin-bottom: 30px; text-align: left; }
+        .navbar a { color: white; text-decoration: none; margin-left: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header-card { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; }
+        .stats-grid { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px; }
+        .stat-box { flex: 1; min-width: 150px; background: #f8f9fa; padding: 20px; border-radius: 15px; text-align: center; }
+        .stat-number { font-size: 36px; font-weight: bold; margin-bottom: 5px; }
+        .stat-label { color: #666; font-size: 14px; }
+        .risk-CRITICAL { color: #dc3545; } .risk-HIGH { color: #fd7e14; } .risk-MEDIUM { color: #ffc107; } .risk-LOW { color: #28a745; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: bold; color: #333; }
+        .attack-row { background: #fff3f3; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .badge-sql { background: #dc3545; color: white; } .badge-xss { background: #fd7e14; color: white; } .badge-lfi { background: #6f42c1; color: white; } .badge-brute { background: #20c997; color: white; }
+        .recommendation { padding: 15px; background: #e8f5e9; border-radius: 10px; margin-bottom: 10px; border-right: 4px solid #28a745; }
+        .btn { display: inline-block; background: #00d4ff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 30px; margin-top: 20px; border: none; cursor: pointer; }
+        .btn:hover { background: #0099cc; }
+        .case-info-table th, .case-info-table td { text-align: right; border-bottom: 1px solid #eee; padding: 10px; }
+        .case-info-table th { width: 200px; background: none; font-weight: normal; color: #555; }
+        .case-info-table td { font-weight: bold; color: #333; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div style="max-width: 1200px; margin: 0 auto;"><a href="/">🏠 الرئيسية</a><a href="/analyze">📁 تحليل جديد</a></div>
+    </div>
+    <div class="container">
+        {% if report %}
+        <div class="card header-card">
+            <h1>📊 تقرير التحليل الجنائي الرقمي</h1>
+            <p>معرف التقرير: {{ report.report_id }}</p>
+            <p>تاريخ الإنشاء: {{ report.generated_at[:19] }}</p>
+        </div>
+
+        <div class="card">
+            <h2>📝 معلومات القضية</h2>
+            <table class="case-info-table">
+                <tr><th>اسم الموقع:</th><td>{{ report.case_info.site_name }}</td></tr>
+                <tr><th>تاريخ الحادثة:</th><td>{{ report.case_info.incident_date }}</td></tr>
+                <tr><th>ملف Access Log:</th><td>{{ report.case_info.access_log_filename }}</td></tr>
+                <tr><th>ملف Error Log:</th><td>{{ report.case_info.error_log_info }}</td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>📈 ملخص التحليل</h2>
+            <div class="stats-grid">
+                <div class="stat-box"><div class="stat-number">{{ report.summary.total_requests }}</div><div class="stat-label">مجموع الطلبات</div></div>
+                <div class="stat-box"><div class="stat-number" style="color: #dc3545;">{{ report.summary.total_attacks }}</div><div class="stat-label">الهجمات المكتشفة</div></div>
+                <div class="stat-box"><div class="stat-number">{{ "%.1f"|format(report.summary.attack_rate) }}%</div><div class="stat-label">معدل الهجمات</div></div>
+                <div class="stat-box"><div class="stat-number risk-{{ report.summary.risk_level }}">{{ report.summary.risk_level }}</div><div class="stat-label">مستوى الخطورة</div></div>
+            </div>
+        </div>
+        
+        {% if report.suspicious_ips %}
+        <div class="card">
+            <h2>⚠️ أبرز الـ IPs المشبوهة</h2>
+            <table>
+                <thead><tr><th>#</th><th>عنوان IP</th><th>عدد الهجمات</th></tr></thead>
+                <tbody>
+                    {% for ip in report.suspicious_ips %}
+                    <tr><td>{{ loop.index }}</td><td><code>{{ ip.ip }}</code></td><td style="color: #dc3545;">{{ ip.count }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        
+        {% if report.attacks %}
+        <div class="card">
+            <h2>🔴 تفاصيل الهجمات المكتشفة</h2>
+            <table>
+                <thead><tr><th>الوقت</th><th>IP</th><th>نوع الهجوم</th><th>الطلب</th><th>مستوى الثقة</th></tr></thead>
+                <tbody>
+                    {% for attack in report.attacks[:20] %}
+                    <tr class="attack-row">
+                        <td style="font-size: 12px;">{{ attack.time[:19] }}</td>
+                        <td><code>{{ attack.ip }}</code></td>
+                        <td><span class="badge badge-{{ 'sql' if 'SQL' in attack.type else 'xss' if 'XSS' in attack.type else 'lfi' if 'File' in attack.type else 'brute' }}">{{ attack.type }}</span></td>
+                        <td style="max-width: 300px; overflow-x: auto; text-align:left; direction: ltr;"><code>{{ attack.request[:80] }}{% if attack.request|length > 80 %}...{% endif %}</code></td>
+                        <td>{{ "%.0f"|format(attack.confidence * 100) }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if report.attacks|length > 20 %}<p style="color: #999; margin-top: 10px;">... و {{ report.attacks|length - 20 }} هجمات أخرى.</p>{% endif %}
+        </div>
+        {% endif %}
+        
+        {% if report.recommendations %}
+        <div class="card">
+            <h2>💡 توصيات أمنية</h2>
+            {% for rec in report.recommendations %}
+            <div class="recommendation">
+                <strong>{{ rec.title }}</strong>
+                <span style="float: left; color: #{{ 'dc3545' if rec.priority == 'CRITICAL' else 'fd7e14' if rec.priority == 'HIGH' else '28a745' }};">{{ rec.priority }}</span>
+                <p style="margin-top: 8px;">{{ rec.description }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div style="text-align: center;">
+            <button class="btn" onclick="window.print()">🖨️ طباعة التقرير</button>
+            <a href="/analyze" class="btn" style="background: #6c757d; margin-right: 10px;">📁 تحليل جديد</a>
+        </div>
+        
+        {% else %}
+        <div class="card">
+            <h2>⚠️ لم يتم العثور على نتائج</h2>
+            <p>لم يتم العثور على نتائج تحليل. يرجى العودة للصفحة الرئيسية وتحليل ملف سجلات.</p>
+            <a href="/" class="btn">العودة للرئيسية</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

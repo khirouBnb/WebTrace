@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تحليل السجلات - WebTrace</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 15px 30px; color: white; margin-bottom: 30px; text-align: left;
+        }
+        .navbar a { color: white; text-decoration: none; margin-left: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; padding: 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        h1 { color: #1a1a2e; margin-bottom: 10px; }
+        .info-box { background: #e3f2fd; padding: 15px; border-radius: 10px; margin: 20px 0; border-right: 4px solid #00d4ff; }
+        .drop-zone { border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; margin: 15px 0; background: #fafafa; }
+        .drop-zone:hover, .drop-zone.dragover { border-color: #00d4ff; background: #f0f9ff; }
+        .drop-zone .icon { font-size: 50px; margin-bottom: 10px; }
+        .file-info { background: #e8f5e9; padding: 10px; border-radius: 10px; margin: 10px 0; display: none; font-size: 14px; }
+        .form-group { margin: 20px 0; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #333; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        button { background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%); color: white; border: none; padding: 14px 30px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; transition: all 0.3s; }
+        button:hover { transform: scale(1.02); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loading { text-align: center; padding: 30px; display: none; }
+        .spinner { width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #00d4ff; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .back-link { display: inline-block; margin-top: 20px; color: #00d4ff; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <a href="/">🏠 الرئيسية</a>
+            <a href="/analyze" style="font-weight: bold;">📁 تحليل جديد</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h1>📁 تحليل ملفات السجلات</h1>
+        <p style="color: #666; margin-bottom: 20px;">املأ البيانات وأرفق ملفات السجلات لبدء التحليل والكشف عن الهجمات.</p>
+        
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="siteName">🌐 اسم الموقع</label>
+                <input type="text" id="siteName" name="site_name" placeholder="مثال: example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="incidentDate">📅 تاريخ الحادثة</label>
+                <input type="date" id="incidentDate" name="incident_date" required>
+            </div>
+            
+            <!-- Access Log Upload -->
+            <label class="form-group label">📂 ملف Access Log</label>
+            <div class="drop-zone" id="accessDropZone">
+                <div class="icon">📄</div>
+                <p><strong>اسحب ملف access.log وأفلته هنا</strong></p>
+                <p style="color: #999; font-size: 14px;">أو انقر للاختيار من جهازك</p>
+                <input type="file" id="accessLogFile" name="access_log_file" accept=".log,.txt" style="display: none;" required>
+            </div>
+            <div id="accessFileInfo" class="file-info"></div>
+
+            <!-- Error Log Upload -->
+            <label class="form-group label">📂 ملف Error Log (اختياري)</label>
+            <div class="drop-zone" id="errorDropZone">
+                <div class="icon">📜</div>
+                <p><strong>اسحب ملف error.log وأفلته هنا</strong></p>
+                <p style="color: #999; font-size: 14px;">أو انقر للاختيار من جهازك</p>
+                <input type="file" id="errorLogFile" name="error_log_file" accept=".log,.txt" style="display: none;">
+            </div>
+            <div id="errorFileInfo" class="file-info"></div>
+            
+            <button type="submit" id="analyzeBtn">🔍 بدء التحليل</button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>جاري تحليل الملفات... هذا قد يستغرق بضع ثوانٍ</p>
+            <p style="font-size: 12px; color: #999;">الرجاء الانتظار</p>
+        </div>
+        
+        <a href="/" class="back-link">→ العودة للرئيسية</a>
+    </div>
+    
+    <script>
+        function setupDropZone(dropZoneId, fileInputId, fileInfoId) {
+            const dropZone = document.getElementById(dropZoneId);
+            const fileInput = document.getElementById(fileInputId);
+            const fileInfo = document.getElementById(fileInfoId);
+
+            dropZone.addEventListener('click', () => fileInput.click());
+            
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+            
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+            
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    updateFileInfo(fileInput, fileInfo);
+                }
+            });
+            
+            fileInput.addEventListener('change', () => {
+                updateFileInfo(fileInput, fileInfo);
+            });
+        }
+
+        function updateFileInfo(fileInput, fileInfo) {
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const sizeKB = (file.size / 1024).toFixed(2);
+                fileInfo.innerHTML = `✅ ${file.name} (${sizeKB} KB)`;
+                fileInfo.style.display = 'block';
+            } else {
+                fileInfo.style.display = 'none';
+            }
+        }
+
+        setupDropZone('accessDropZone', 'accessLogFile', 'accessFileInfo');
+        setupDropZone('errorDropZone', 'errorLogFile', 'errorFileInfo');
+        
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const siteName = document.getElementById('siteName').value;
+            const incidentDate = document.getElementById('incidentDate').value;
+            const accessLogFile = document.getElementById('accessLogFile').files[0];
+
+            if (!siteName || !incidentDate || !accessLogFile) {
+                alert('⚠️ يرجى ملء جميع الحقول المطلوبة (اسم الموقع، تاريخ الحادثة) ورفع ملف access.log على الأقل.');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('site_name', siteName);
+            formData.append('incident_date', incidentDate);
+            formData.append('access_log_file', accessLogFile);
+            
+            const errorLogFile = document.getElementById('errorLogFile').files[0];
+            if (errorLogFile) {
+                formData.append('error_log_file', errorLogFile);
+            }
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('analyzeBtn').disabled = true;
+            
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.report_id) {
+                        // التوجه لصفحة النتائج باستخدام المعرف بدلاً من البيانات الكاملة
+                        window.location.href = '/results?id=' + data.report_id;
+                    } else {
+                        alert('❌ خطأ في التحليل: ' + data.error);
+                    }
+                } else {
+                    const errorData = await response.json().catch(() => ({ error: 'خطأ غير معروف في الخادم (500)' }));
+                    alert('❌ حدث خطأ في الخادم: ' + (errorData.error || response.statusText));
+                }
+            } catch (error) {
+                alert('❌ حدث خطأ غير متوقع: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebTrace - Digital Forensics Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 56px;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header h1 span {
+            color: #00d4ff;
+        }
+        
+        .header p {
+            font-size: 20px;
+            opacity: 0.9;
+        }
+        
+        /* Cards */
+        .cards {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 35px 25px;
+            width: 300px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .card-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        
+        .card h3 {
+            color: #1a1a2e;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+        
+        .card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Features Section */
+        .features {
+            margin-top: 80px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 40px;
+        }
+        
+        .features h2 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 32px;
+        }
+        
+        .features-grid {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .feature-item {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 20px;
+            width: 220px;
+            text-align: center;
+        }
+        
+        .feature-item .emoji {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .feature-item h4 {
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+        
+        .feature-item p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            color: rgba(255,255,255,0.6);
+            padding: 40px;
+            margin-top: 50px;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 36px; }
+            .card { width: 280px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+<h1>🔍 <span>WebTrace</span></h1>
+            <p>Digital forensic analysis system for web attack detection</p>
+            <p style="font-size: 16px; margin-top: 10px;">Discover how your site was attacked and by whom</p>
+        </div>
+        
+        <div class="cards">
+            <div class="card" onclick="window.location.href='/analyze'">
+                <div class="card-icon">📁</div>
+                <h3>Log File Analysis</h3>
+                <p>Upload your server access.log and get a full attack report</p>
+                <button class="btn">Start Analysis →</button>
+            </div>
+            
+            <div class="card" onclick="testExample()">
+                <div class="card-icon">⚡</div>
+                <h3>Quick Demo</h3>
+                <p>Try the system with a sample log before uploading your own</p>
+                <button class="btn">Run Demo →</button>
+            </div>
+            
+            <div class="card" onclick="trainModel()">
+                <div class="card-icon">🛡️</div>
+                <h3>Train Model</h3>
+                <p>Retrain the AI model with new data to improve accuracy</p>
+                <button class="btn">Train Model →</button>
+            </div>
+        </div>
+        
+        <div class="features">
+            <h2>What does the system detect?</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="emoji">💉</div>
+                    <h4>SQL Injection</h4>
+                    <p>هجمات حقن قواعد البيانات</p>
+                </div>
+                <div class="feature-item">
+                    <div class="emoji">📜</div>
+                    <h4>XSS</h4>
+                    <p>هجمات البرمجة النصية عبر المواقع</p>
+                </div>
+                <div class="feature-item">
+                    <div class="emoji">📁</div>
+                    <h4>LFI / RFI</h4>
+                    <p>هجمات تضمين الملفات</p>
+                </div>
+                <div class="feature-item">
+                    <div class="emoji">🔑</div>
+                    <h4>Brute Force</h4>
+                    <p>هجمات تخمين كلمات المرور</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Forensic AI - Log analysis to detect breaches and identify attackers</p>
+            <p style="font-size: 12px; margin-top: 10px;">© 2024 All rights reserved</p>
+        </footer>
+    </div>
+    
+    <script>
+        async function testExample() {
+            // مثال تجريبي لسجلات
+            const exampleLog = `192.168.1.100 - - [25/Mar/2024:10:00:00 +0000] "GET /index.html HTTP/1.1" 200 1024
+192.168.1.50 - - [25/Mar/2024:10:01:00 +0000] "GET /page.php?id=1' OR '1'='1-- HTTP/1.1" 500 512
+192.168.1.50 - - [25/Mar/2024:10:02:00 +0000] "GET /admin.php?id=1 UNION SELECT 1,2,3-- HTTP/1.1" 500 256
+192.168.1.100 - - [25/Mar/2024:10:03:00 +0000] "GET /about.html HTTP/1.1" 200 512
+192.168.1.200 - - [25/Mar/2024:10:04:00 +0000] "GET /search.php?q=<script>alert(1)</script> HTTP/1.1" 400 128
+192.168.1.50 - - [25/Mar/2024:10:05:00 +0000] "GET /page.php?file=../../../etc/passwd HTTP/1.1" 500 256`;
+            
+            const formData = new FormData();
+            formData.append('access_log_file', new Blob([exampleLog], {type: 'text/plain'}), 'example.log');
+            formData.append('site_name', 'Example Site');
+            formData.append('incident_date', '2024-03-25');
+            
+            const response = await fetch('/api/analyze', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                window.location.href = '/results?data=' + encodeURIComponent(JSON.stringify(data));
+            } else {
+                alert('Error: ' + data.error);
+            }
+        }
+        
+        async function trainModel() {
+            const response = await fetch('/api/train', {
+                method: 'POST'
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('✅ Model training successful!');
+            } else {
+                alert('❌ Error: ' + data.error);
+            }
+        }
+    </script>
+</body>
+</html>
