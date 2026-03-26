@@ -1,9 +1,7 @@
+*.pyc
+venv/
+datasets/
 *.csv
 *.pcap
-*.pcapng
-datasets/
-captures/
-__pycache__/
-*.pyc
-nul
-Structure de projet.txt
+uploads/
+reports/
