@@ -134,6 +134,18 @@
         setupDropZone('accessDropZone', 'accessLogFile', 'accessFileInfo');
         setupDropZone('errorDropZone', 'errorLogFile', 'errorFileInfo');
         
+        async function trainModel() {
+            if (!confirm('هل تريد إعادة تدريب النموذج على البيانات الحالية؟')) return;
+            
+            try {
+                const response = await fetch('/api/train', { method: 'POST' });
+                const data = await response.json();
+                alert(data.success ? '✅ تم تدريب النموذج بنجاح!' : '❌ فشل التدريب: ' + data.error);
+            } catch (error) {
+                alert('❌ حدث خطأ أثناء الاتصال بالسيرفر');
+            }
+        }
+
         document.getElementById('uploadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             

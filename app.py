@@ -219,7 +219,7 @@ def results():
                     stored_report = json.load(f)
                     return render_template('results.html', 
                                          report=stored_report,
-                                         results=stored_report.get('summary', {}))
+                                         results=stored_report.get('results', stored_report.get('summary', {})))
             except Exception as e:
                 print(f"Error loading stored report: {e}")
     
