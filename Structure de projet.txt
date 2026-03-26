@@ -1,0 +1,36 @@
+C:\forensic-ai\                           # المجلد الرئيسي
+│
+├── app.py                                 # ملف تشغيل السيرفر (الملف الرئيسي)
+├── requirements.txt                       # المكتبات المطلوبة
+│
+├── datasets\                              # مجلد البيانات للتدريب
+│   ├── sql_injection_samples.txt          # عينات SQL Injection
+│   ├── xss_samples.txt                    # عينات XSS
+│   ├── lfi_samples.txt                    # عينات Local File Inclusion
+│   ├── normal_requests.txt                # طلبات عادية
+│   └── training_data.csv                  # بيانات التدريب المجمعة
+│
+├── models\                                # مجلد النماذج المدربة
+│   ├── sql_detector.pkl                   # نموذج كشف SQL Injection
+│   ├── xss_detector.pkl                   # نموذج كشف XSS
+│   ├── lfi_detector.pkl                   # نموذج كشف LFI
+│   └── combined_model.pkl                 # النموذج المدمج
+│
+├── core\                                  # مجلد الكود الأساسي
+│   ├── feature_extractor.py               # استخراج الميزات من الطلبات
+│   ├── dataset_builder.py                 # بناء البيانات من الملفات
+│   ├── model_trainer.py                   # تدريب النماذج
+│   ├── log_parser.py                      # تحليل ملفات السجلات
+│   ├── attack_detector.py                 # كشف الهجمات
+│   └── report_generator.py                # إنشاء التقارير
+│
+├── templates\                             # مجلد واجهات المستخدم
+│   ├── index.html                         # الصفحة الرئيسية
+│   ├── analyze.html                       # صفحة التحليل
+│   └── results.html                       # صفحة النتائج
+│
+├── uploads\                               # مجلد الملفات المرفوعة
+│   └── (ملفات access.log التي يرفعها المستخدم)
+│
+└── reports\                               # مجلد التقارير
+    └── (التقارير التي يتم إنشاؤها)
