@@ -1,0 +1,12 @@
+[Fri Mar 28 10:01:00.123456 2024] [core:error] [client 192.168.1.50] PHP Fatal error: Uncaught Error: Call to undefined function mysqli_connect() in /var/www/html/page.php:12
+[Fri Mar 28 10:02:00.123456 2024] [core:error] [client 192.168.1.50] PHP Warning: mysqli_query() expects parameter 1 to be mysqli, null given in /var/www/html/admin.php:25
+[Fri Mar 28 10:04:00.123456 2024] [core:error] [client 192.168.1.200] PHP Warning: htmlspecialchars() expects parameter 1 to be string, array given in /var/www/html/search.php:45
+[Fri Mar 28 10:05:00.123456 2024] [core:error] [client 192.168.1.50] PHP Warning: file_get_contents(): Filename cannot be empty in /var/www/html/page.php:67
+[Fri Mar 28 10:08:00.123456 2024] [core:error] [client 192.168.1.50] PHP Parse error: syntax error, unexpected 'AND' (T_AND) in /var/www/html/admin.php:30
+[Fri Mar 28 10:10:00.123456 2024] [core:error] [client 192.168.1.50] PHP Warning: include(../../../../etc/passwd): failed to open stream: No such file or directory in /var/www/html/config.php:20
+[Fri Mar 28 10:14:00.123456 2024] [core:error] [client 192.168.1.50] PHP Fatal error: Uncaught Error: Call to undefined function mysql_query() in /var/www/html/db.php:15
+[Fri Mar 28 10:17:00.123456 2024] [core:error] [client 192.168.1.50] PHP Warning: mysqli_connect(): (28000/1045): Access denied for user 'admin'@'localhost' in /var/www/html/login.php:10
+[Fri Mar 28 10:20:00.123456 2024] [core:error] [client 192.168.1.200] PHP Warning: htmlspecialchars(): Invalid multibyte sequence in /var/www/html/comment.php:22
+[Fri Mar 28 10:24:00.123456 2024] [core:error] [client 192.168.1.50] PHP Notice: Undefined variable: sql in /var/www/html/search.php:45
+[Fri Mar 28 10:27:00.123456 2024] [core:error] [client 192.168.1.50] PHP Warning: mysqli_fetch_array() expects parameter 1 to be mysqli_result, bool given in /var/www/html/admin.php:32
+[Fri Mar 28 10:30:00.123456 2024] [core:error] [client 192.168.1.50] PHP Parse error: syntax error, unexpected 'SELECT' (T_STRING) in /var/www/html/api.php:18

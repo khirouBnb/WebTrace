@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>النتائج | WebTrace</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0f;
+            background-image: radial-gradient(circle at top right, rgba(124, 58, 237, 0.05), transparent), radial-gradient(circle at bottom left, rgba(0, 212, 255, 0.05), transparent);
+            color: #e2e8f0;
+        }
+        .navbar {
+            background: rgba(10,10,15,0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,212,255,0.2);
+            padding: 16px 30px;
+        }
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        .nav-links a { color: #94a3b8; text-decoration: none; margin-left: 30px; }
+        .nav-links a:hover { color: #00d4ff; }
+        
+        .container { max-width: 1200px; margin: 30px auto; padding: 20px; }
+        .card {
+            background: rgba(15,15,26,0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 28px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(0,212,255,0.2);
+        }
+        .header-card {
+            background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(124,58,237,0.1));
+        }
+        .stats-grid {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .section-title {
+            color: #00d4ff;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        .stat-box {
+            flex: 1;
+            background: rgba(10,10,15,0.8);
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(0,212,255,0.2);
+            transition: all 0.3s;
+        }
+        .stat-box:hover { transform: translateY(-3px); border-color: #00d4ff; }
+        .stat-number { font-size: 36px; font-weight: 800; margin-bottom: 4px; display: block; }
+        .stat-label { font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+
+        .risk-critical { color: #ef4444; }
+        .risk-high { color: #f59e0b; }
+        .risk-medium { color: #eab308; }
+        .risk-low { color: #10b981; }
+        
+        .chart-container {
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        th, td { padding: 12px 15px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        th { background: rgba(0,212,255,0.05); color: #00d4ff; font-weight: 600; text-transform: uppercase; font-size: 12px; }
+        tr:hover { background: rgba(0,212,255,0.05); }
+        code { font-family: 'Fira Code', monospace; color: #10b981; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-sql { background: #ef4444; color: white; }
+        .badge-xss { background: #f59e0b; color: white; }
+        .badge-lfi { background: #7c3aed; color: white; }
+        .badge-brute { background: #10b981; color: white; }
+        
+        .timeline-item {
+            padding: 15px;
+            border-right: 3px solid #00d4ff;
+            margin-bottom: 12px;
+            background: rgba(10,10,15,0.5);
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        .timeline-item:hover { background: rgba(0,212,255,0.1); transform: translateX(-5px); }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        .info-item b { color: #e2e8f0; margin-left: 5px; }
+
+        .recommendation {
+            padding: 15px;
+            background: rgba(16,185,129,0.1);
+            border-right: 3px solid #10b981;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+        .rec-priority {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: rgba(245, 158, 11, 0.2);
+        }
+        
+        .btn-group { text-align: center; margin-top: 20px; }
+        .btn {
+            display: inline-block;
+            background: #00d4ff;
+            color: #0a0a0f;
+            padding: 12px 28px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 0 10px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover { transform: scale(1.02); box-shadow: 0 0 15px #00d4ff; }
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+        }
+        .btn-secondary:hover { background: rgba(0,212,255,0.1); }
+        
+        .copy-btn {
+            background: none;
+            border: none;
+            color: #00d4ff;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+        
+        /* أنماط الطباعة */
+        @media print {
+            .navbar, .btn-group, .btn, .back-link, .copy-btn, .nav-links {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .container {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .card {
+                background: white !important;
+                border: 1px solid #ddd !important;
+                box-shadow: none !important;
+                page-break-inside: avoid;
+                margin-bottom: 15px !important;
+                padding: 20px !important;
+            }
+            .header-card {
+                background: #f5f5f5 !important;
+            }
+            .stat-box {
+                border: 1px solid #ddd !important;
+                background: #f9f9f9 !important;
+                page-break-inside: avoid;
+            }
+            .stat-number {
+                color: #333 !important;
+            }
+            th {
+                background: #f5f5f5 !important;
+                color: #333 !important;
+            }
+            td {
+                color: #333 !important;
+            }
+            .badge {
+                border: 1px solid #333;
+                background: #f5f5f5 !important;
+                color: #333 !important;
+            }
+            .timeline-item {
+                border: 1px solid #ddd !important;
+                background: #fafafa !important;
+            }
+            .recommendation {
+                border: 1px solid #ddd !important;
+                background: #fafafa !important;
+            }
+            .chart-container {
+                page-break-inside: avoid;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid { flex-direction: column; }
+            table { display: block; overflow-x: auto; }
+            .btn-group { display: flex; flex-direction: column; gap: 10px; }
+            .btn { margin: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-content">
+            <a href="/" class="logo">WebTrace</a>
+            <div class="nav-links">
+                <a href="/">الرئيسية</a>
+                <a href="/analyze">تحليل</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="reportContainer">
+        <!-- سيتم ملء المحتوى بواسطة JavaScript -->
+        <div class="card" style="text-align: center;">
+            <div class="spinner" style="width: 40px; height: 40px; border: 3px solid rgba(0,212,255,0.2); border-top-color: #00d4ff; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 20px auto;"></div>
+            <p>جاري تحميل التقرير...</p>
+        </div>
+    </div>
+
+    <script>
+        // Inject data directly from Flask to avoid "URI Too Long" errors
+        const reportData = {{ report|tojson|safe }};
+        const resultsData = {{ results|tojson|safe }};
+
+        function renderReport(report, results) {
+            const container = document.getElementById('reportContainer');
+            
+            if (!report || !results) {
+                container.innerHTML = `
+                    <div class="card">
+                        <h2>⚠️ لا توجد نتائج</h2>
+                        <p>لم يتم العثور على نتائج للتحليل</p>
+                        <a href="/" class="btn">العودة للرئيسية</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            // Header
+            html += `
+                <div class="card header-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                        <div>
+                            <h1 style="font-size: 2rem;"><i class="fas fa-shield-alt"></i> تقرير التحليل الجنائي الرقمي</h1>
+                            <p style="color: #94a3b8; margin-top: 5px;">كود المرجع: <code>${report.report_id}</code></p>
+                        </div>
+                        <div style="text-align: left; color: #94a3b8;">
+                            <p><i class="fas fa-calendar-alt"></i> ${new Date(report.generated_at).toLocaleString('ar-EG')}</p>
+                        </div>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item"><i class="fas fa-globe"></i> <b>الموقع المستهدف:</b> ${report.case_info.site_name}</div>
+                        <div class="info-item"><i class="fas fa-file-code"></i> <b>ملف السجل:</b> ${report.case_info.access_log_filename}</div>
+                        <div class="info-item"><i class="fas fa-clock"></i> <b>تاريخ الحادثة:</b> ${report.case_info.incident_date}</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2 class="section-title"><i class="fas fa-chart-line"></i> مؤشرات الأداء الأمنية (KPIs)</h2>
+                    <div class="stats-grid">
+                        <div class="stat-box"><span class="stat-number">${report.summary.total_requests.toLocaleString()}</span><span class="stat-label">إجمالي الزيارات</span></div>
+                        <div class="stat-box" style="border-color: rgba(239, 68, 68, 0.4);"><span class="stat-number" style="color:#ef4444;">${report.summary.total_attacks}</span><span class="stat-label">التهديدات المكتشفة</span></div>
+                        <div class="stat-box"><span class="stat-number" style="color:#00d4ff;">${report.summary.attack_rate.toFixed(2)}%</span><span class="stat-label">معدل التهديد</span></div>
+                        <div class="stat-box"><span class="stat-number risk-${report.summary.risk_level.toLowerCase()}">${report.summary.risk_level}</span><span class="stat-label">مستوى الخطورة</span></div>
+                    </div>
+                </div>
+            `;
+            
+            // Attack Distribution Chart
+            if (report.attack_types && Object.keys(report.attack_types).length > 0) {
+                html += `
+                    <div class="card">
+                        <h2 class="section-title"><i class="fas fa-chart-pie"></i> تحليل توزيع الهجمات</h2>
+                        <div class="chart-container">
+                            <canvas id="attacksChart"></canvas>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Suspicious IPs
+            if (results.suspicious_ips && results.suspicious_ips.length > 0) {
+                html += `
+                    <div class="card">
+                        <h2 class="section-title"><i class="fas fa-user-secret"></i> الجهات المهاجمة الأكثر نشاطاً</h2>
+                        <table>
+                            <thead><tr><th>#</th><th>IP</th><th>عدد الهجمات</th><th></th></tr></thead>
+                            <tbody>
+                `;
+                results.suspicious_ips.forEach((ip, idx) => {
+                    html += `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td><code>${ip.ip}</code></td>
+                            <td style="color:#ef4444;">${ip.count}</td>
+                            <td><button class="copy-btn" onclick="copyToClipboard('${ip.ip}')"><i class="fas fa-copy"></i></button></td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table></div>`;
+            }
+            
+            // Attacks Details
+            if (results.attacks && results.attacks.length > 0) {
+                html += `
+                    <div class="card">
+                        <h2 class="section-title"><i class="fas fa-list-ul"></i> سجل الهجمات المكتشفة</h2>
+                        <table>
+                            <thead><tr><th>الوقت</th><th>IP</th><th>النوع</th><th>الطلب</th></tr></thead>
+                            <tbody>
+                `;
+                results.attacks.slice(0, 20).forEach(attack => {
+                    let badgeClass = 'badge-sql';
+                    if (attack.type.includes('XSS')) badgeClass = 'badge-xss';
+                    else if (attack.type.includes('File')) badgeClass = 'badge-lfi';
+                    else if (attack.type.includes('Brute')) badgeClass = 'badge-brute';
+                    
+                    html += `
+                        <tr>
+                            <td style="font-size:12px;">${attack.time.slice(0, 20)}</td>
+                            <td><code>${attack.ip}</code></td>
+                            <td><span class="badge ${badgeClass}">${attack.type}</span></td>
+                            <td style="max-width:350px; overflow-x:auto;"><code>${attack.request.slice(0, 70)}${attack.request.length > 70 ? '...' : ''}</code></td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table></div>`;
+                
+                // Timeline
+                html += `
+                    <div class="card">
+                        <h2 class="section-title"><i class="fas fa-history"></i> التسلسل الزمني للأحداث</h2>
+                `;
+                results.attacks.slice(0, 10).forEach(attack => {
+                    let badgeClass = 'badge-sql';
+                    if (attack.type.includes('XSS')) badgeClass = 'badge-xss';
+                    else if (attack.type.includes('File')) badgeClass = 'badge-lfi';
+                    
+                    html += `
+                        <div class="timeline-item">
+                            <strong>🕐 ${attack.time.slice(0, 20)}</strong>
+                            <span style="float:left;"><span class="badge ${badgeClass}">${attack.type}</span></span>
+                            <br><strong>IP:</strong> ${attack.ip}
+                            <br><strong>الطلب:</strong> <code>${attack.request.slice(0, 100)}</code>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+            
+            // Recommendations
+            if (report.recommendations && report.recommendations.length > 0) {
+                html += `
+                    <div class="card">
+                        <h2 class="section-title"><i class="fas fa-shield-virus"></i> خطة الاستجابة والتوصيات</h2>
+                `;
+                report.recommendations.forEach(rec => {
+                    html += `
+                        <div class="recommendation">
+                            <strong>${rec.title}</strong>
+                            <span style="float:left;" class="rec-priority">${rec.priority}</span>
+                            <p style="margin-top:8px;">${rec.description}</p>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+            
+            // Buttons
+            html += `
+                <div class="btn-group">
+                    <button class="btn" onclick="window.print()"><i class="fas fa-print"></i> طباعة التقرير</button>
+                    <button class="btn btn-secondary" id="exportPdfBtn"><i class="fas fa-file-pdf"></i> حفظ PDF</button>
+                    <a href="/analyze" class="btn btn-secondary"><i class="fas fa-plus"></i> تحليل جديد</a>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            
+            // Draw chart if exists
+            if (report.attack_types && Object.keys(report.attack_types).length > 0) {
+                const ctx = document.getElementById('attacksChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(report.attack_types),
+                        datasets: [{
+                            data: Object.values(report.attack_types),
+                            backgroundColor: ['#ef4444', '#f59e0b', '#7c3aed', '#10b981', '#00d4ff'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: '#e2e8f0' } }
+                        }
+                    }
+                });
+            }
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            alert('✅ تم نسخ IP: ' + text);
+        }
+        
+        // Initialize report if data is present
+        if (reportData && Object.keys(reportData).length > 0) {
+            renderReport(reportData, resultsData);
+        } else {
+            document.getElementById('reportContainer').innerHTML = '<div class="card"><h2>⚠️ فشل في تحميل التقرير</h2></div>';
+        }
+        
+        // PDF Export
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'exportPdfBtn' || e.target.parentElement.id === 'exportPdfBtn') {
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>
